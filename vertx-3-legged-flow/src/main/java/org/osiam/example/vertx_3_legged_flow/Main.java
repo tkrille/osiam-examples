@@ -25,9 +25,9 @@ package org.osiam.example.vertx_3_legged_flow;
 import java.io.IOException;
 import java.net.URI;
 
-import org.osiam.client.connector.OsiamConnector;
+import org.osiam.client.OsiamConnector;
 import org.osiam.client.oauth.AccessToken;
-import org.osiam.client.oauth.GrantType;
+import org.osiam.client.oauth.Scope;
 import org.osiam.resources.scim.User;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.MultiMap;
@@ -39,23 +39,21 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         Vertx vertx = VertxFactory.newVertx();
+
         vertx.createHttpServer().requestHandler(new Handler<HttpServerRequest>() {
-
-            OsiamConnector oConnector = new OsiamConnector.Builder()
-                    .setAuthServerEndpoint("http://localhost:8080/osiam-auth-server")
-                    .setResourceServerEndpoint("http://localhost:8080/osiam-resource-server")
-                    .setClientId("example-client")
-                    .setClientSecret("secret")
-                    .setClientRedirectUri("http://localhost:5000/oauth2")
-                    .setGrantType(GrantType.AUTHORIZATION_CODE)
-                    .setScope("GET PUT PATCH")
-                    .build();
-
             @Override
             public void handle(HttpServerRequest req) {
+                final OsiamConnector oConnector = new OsiamConnector.Builder()
+                        .setAuthServerEndpoint("http://localhost:8180/osiam-auth-server")
+                        .setResourceServerEndpoint("http://localhost:8180/osiam-resource-server")
+                        .setClientId("example-client")
+                        .setClientSecret("secret")
+                        .setClientRedirectUri("http://localhost:5000/oauth2")
+                        .build();
+
                 String path = req.path();
                 if (path.equals("/login")) {
-                    URI uri = oConnector.getRedirectLoginUri();
+                    URI uri = oConnector.getAuthorizationUri(Scope.GET);
                     req.response().setStatusCode(301).putHeader("Location", uri.toString()).end();
                 }
                 if (path.equals("/oauth2")) {
